@@ -1,9 +1,9 @@
-# Self-corrective RAG assistant
+# Atlas: answers from your docs
 
-A FastAPI service that answers technical questions from a small document
-collection. LangGraph analyzes the question, retrieves ChromaDB chunks, grades
-each chunk, and either answers with numbered citations, rewrites and retries,
-or returns an explicit no-answer response.
+Atlas is a small FastAPI app for asking questions about a set of technical
+documents. It searches your files, checks whether the passages it found support
+an answer, and points you back to those passages. When it cannot find enough
+evidence, it says so instead of guessing.
 
 ## Requirements
 
@@ -11,7 +11,7 @@ or returns an explicit no-answer response.
 - A Google Gemini API key with access to the configured chat and embedding models
 - Internet access for the first dependency install and model API calls
 
-## Setup
+## Get it running
 
 ```powershell
 py -m venv .venv
@@ -25,16 +25,15 @@ Set `GOOGLE_API_KEY` in `.env` using a key from Google AI Studio. The included
 are stored locally under `data/`.
 Do not commit `.env` or API keys.
 
-## Run
+## Start Atlas
 
 ```powershell
 uvicorn app.main:app --reload
 ```
 
-Open `http://127.0.0.1:8000/` for the RAG web interface. Use the knowledge-base
-panel to select and index Markdown or text documents, then ask questions in the
-assistant panel and review the cited sources. The API documentation remains
-available at `http://127.0.0.1:8000/docs`.
+Open `http://127.0.0.1:8000/` to add Markdown or text files and ask questions
+about them. Answers include links back to the passages used. The API docs are at
+`http://127.0.0.1:8000/docs`.
 
 ## API examples
 
@@ -103,7 +102,7 @@ curl.exe -X POST http://127.0.0.1:8000/feedback `
 validation errors; unknown feedback query IDs return 404; model/provider failures
 are surfaced as server errors rather than fabricated answers.
 
-## Architecture
+## How an answer is made
 
 ```text
 POST /query
@@ -132,7 +131,7 @@ explicit no-answer response. Two retrieved chunks limit ordinary successful
 queries to five Gemini generation requests: analysis, two grading decisions,
 answer generation, and verification.
 
-## Design choices and tradeoffs
+## A few tradeoffs
 
 - Assumptions: documents are UTF-8 Markdown or plain text; each query is
   independent rather than part of a persistent chat session; and only claims
@@ -164,7 +163,7 @@ credentials. They cover citation mapping, successful retry, and the bounded
 no-answer path, including rejection when the generated answer is not supported
 by the retrieved context.
 
-## Future improvements
+## What could come next
 
 Hybrid BM25/vector retrieval, reranking, a small evaluation set, streaming,
 parallel grading, authentication, and conversation memory would be useful next
